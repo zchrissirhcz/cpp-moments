@@ -39,6 +39,15 @@ Array 可以看做是 Matrix 的特例。除了初始化 Matrix 的元素，Eige
 实现代码如下：
 ```c++
 
+/**
+ *
+ * 逗号初始化，第一个版本
+ * 能够用来初始化元素，对超出元素数量的赋值有检查
+ * 但对于元素数量不足的赋值，缺乏检查
+ *
+ * 修复了 static 局部变量导致的 bug
+ */
+
 #include <stdio.h>
 #include <iostream>
 #include <vector>
@@ -68,7 +77,6 @@ public:
 private:
     void init_assign_value(double val)
     {
-        static int init_value_cnt = 0;
         if (init_value_cnt >= len) {
             fprintf(stderr, "too much elements for initialize\n");
             exit(1);
@@ -76,6 +84,7 @@ private:
         data[init_value_cnt] = val;
         init_value_cnt++;
     }
+    int init_value_cnt;
 };
 
 std::ostream& operator << (std::ostream& os, const Array& arr)
@@ -99,6 +108,7 @@ Array& operator , (Array& arr, double val)
 
 Array& operator << (Array& arr, double val)
 {
+    arr.init_value_cnt = 0;
     arr.init_assign_value(val);
     return arr;
 }
@@ -109,6 +119,10 @@ void test_array()
     std::cout << arr << std::endl;
     arr << 1, 2, 3, 4;
     std::cout << arr << std::endl;
+
+    Array arr2(4);
+    arr2 << 5, 6, 7, 8;
+    std::cout << arr2 << std::endl;
 }
 
 int main()
@@ -124,6 +138,8 @@ int main()
 0, 0, 0, 0
 
 1, 2, 3, 4
+
+5, 6, 7, 8
 ```
 
 可以看到，通过逗号表达式给含有4个元素的 Array 对象传入 4 个值，实现了赋值（初始化）操作，初步实现了目标。
@@ -490,7 +506,7 @@ std::ostream& operator << (std::ostream& os, const Matrix<T>& mat)
             if (j > 0) {
                 os << ", ";
             }
-            os << mat.data[i];
+            os << mat.data[i*mat.cols + j];
         }
         os << "\n";
     }
