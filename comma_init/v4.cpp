@@ -1,5 +1,5 @@
 /**
- * 
+ *
  * 逗号初始化，第四个版本
  * 能够用来初始化元素，对超出、少于元素数量的情况，也有检查
  * Array 模板类，改为 Matrix 模板类，用于二维数据的表示（以及后续的矩阵计算）
@@ -88,7 +88,7 @@ std::ostream& operator << (std::ostream& os, const Matrix<T>& mat)
             if (j > 0) {
                 os << ", ";
             }
-            os << mat.data[i];
+            os << mat.data[i*mat.cols+j];
         }
         os << "\n";
     }
@@ -104,7 +104,7 @@ void test_matrix()
         mat << 1, 2, 3, 4;
         std::cout << mat << std::endl;
     }
-    
+
     // 初始化数量，等于元素数量 double 类型
     {
         Matrix<double> mat(1, 4);
