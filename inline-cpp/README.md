@@ -325,7 +325,12 @@ clang++ -O0 small.o big.o main.o -o out
 circle_area(double)
 ```
 
+而在 MacOSX 下，编译器使用 XCode 自带的 AppleClang 12.0.0，编译后查看符号，发现 `circle_area` 内联函数对应的符号并不是弱符号，而是全局符号（`T`）：
 
+![](./inline_symbol.png)
+
+
+而此时还可以进一步实验，把 `util.hpp` 拿掉，分别放到 `small.cpp` 和 `big.cpp` 中，并且分别修改函数实现使得有所差异。也就是：在半天的 .cpp 中，定义相同的 inline 函数（但不是 static），但具体实现又有所差异（显然实际工程中应该避免这样的情况，这里仅仅是举例说明危害）：
 
 
 
