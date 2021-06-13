@@ -1,6 +1,6 @@
 #include <iostream>
 
-inline int add(int a, int b) {
+static int add(int a, int b) {
     return a + b;
 }
 
