@@ -332,9 +332,57 @@ circle_area(double)
 
 而此时还可以进一步实验，把 `util.hpp` 拿掉，分别放到 `small.cpp` 和 `big.cpp` 中，并且分别修改函数实现使得有所差异。也就是：在半天的 .cpp 中，定义相同的 inline 函数（但不是 static），但具体实现又有所差异（显然实际工程中应该避免这样的情况，这里仅仅是举例说明危害）：
 
+`small.cpp`:
+```c++
+//#include "util.h"
+#include <cstdio>
 
+inline double circle_area(double r)
+{
+    printf("small.cpp circle_area() ");
+    static const double pi = 3.14159;
+    return 2.0 * pi * r;
+}
 
+void print_small_pizza_area()
+{
+    printf("%f\n", circle_area(30));;
+}
+```
+
+`big.cpp`
+```c++
+//#include "util.h"
+#include <cstdio>
+
+inline double circle_area(double r)
+{
+    printf("big.cpp circle_area() ");
+    static const double pi = 3.14159;
+    return 2.0 * pi * r;
+}
+
+void print_big_pizza_area()
+{
+    printf("%f\n", circle_area(50));
+}
+```
+
+`main.cpp` 保持不变；在 AppleClang 编译器下，不同编译顺序导致链接到不同的 `circle_area` 实现：
+```bash
+(base) ➜  inline_cpp clang++ small.cpp big.cpp main.cpp
+(base) ➜  inline_cpp ./a.out
+small.cpp circle_area() 188.495400
+small.cpp circle_area() 314.159000
+(base) ➜  inline_cpp clang++ big.cpp small.cpp main.cpp
+(base) ➜  inline_cpp ./a.out
+big.cpp circle_area() 188.495400
+big.cpp circle_area() 314.159000
+```
+
+![](inline_link_order.png)
 
 ## References
 
 - [Dangers of linking inline functions](https://gudok.xyz/inline/)
+
