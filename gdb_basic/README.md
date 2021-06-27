@@ -154,6 +154,75 @@ breakpoint already hit 1 time
 (gdb) 
 ```
 
+## gdb 调试， level 3
+
+### 调试中，修改变量
+
+```gdb
+p var=233
+```
+
+```gdb
+set var cnt=233
+```
+
+
+实例：
+```
+>>> p number=233
+$2 = 233
+>>> p number
+$3 = 233
+>>> set var cnt=20
+>>> p cnt
+$4 = 20
+```
+
+### 反向调试
+
+进 gdb 后，执行 `record` 以开始记录
+```
+b main
+run
+record
+```
+
+单步调试时，想回到上一步：
+```
+s  # 单步
+reverse-step   # 反向单步
+```
+
+注意：
+- 并非所有平台的gdb都支持 reverse debugging
+- 支持的命令包括：
+```
+reverse-continue:  反向执行直到遇到停止事件(例如 breakpoint, watchpoint, or exception). 
+
+reverse-step: 反向运行程序，直到上一条执行的源码开始的那一行. 
+
+reverse-stepi: 反向运行程序，指令级别
+
+reverse-next: 反向执行函数级别的调用
+
+reverse-nexti: 反向执行单条机器指令，如果那条指令是 return， 则整个函数被反向执行
+
+reverse-finish: 反向执行，直到调用的函数
+
+set exec-direction [forward | reverse] ： 模式设定函数，当设定为 reverse 后，诸如 step, continue 这样的命令，都被反向执行
+```
+
+## gdb 调试， level 4
+
+### Q1: 多次执行 list，发现看不到当前断点代码行了。咋办？
+
+用 `where` 命令，查看当前断点所在的行。然后结合 VSCode 查看。
+
+或，`frame` 命令后，再执行 `list`.
+
+要更精确的显示（前后多现实若干行），则使用 `list *$rip`
+
+参考: [gdb: how to print the current line or find the current line number?](https://stackoverflow.com/questions/14581837/gdb-how-to-print-the-current-line-or-find-the-current-line-number)
 
 ### TODO
 
@@ -161,4 +230,12 @@ breakpoint already hit 1 time
 2. 多文件时，编辑器 、 IDE 集成支持？
 3. 修改变量？
 
+
+### CLion
+
+问题1：
+在 debug 模式下，在 lldb 窗口，用命令增加了断点，但是在GUI界面中并没有显示出来
+
+问题2：
+在断点处，没法直接用鼠标查看对应的汇编，需要手动在lldb窗口手动敲 dis 来查看
 
