@@ -82,3 +82,20 @@ dashboard -layout stack assembly source !variables
 - `backtrace`
 - `where`
 - `info stack`
+
+
+**当前位置**
+
+只看当前位置： `frame`
+
+看所有call stack 对应的代码行位置： `where`
+
+
+**进入函数** `step`
+
+**跳出当前** `finish`
+
+比如跳进一个函数的时候，参数很多，其中一个参数是类对象，会跳转到类定义，这有点蛋疼。`finish` 从类定义这个地方跳出来。
+
+
+
