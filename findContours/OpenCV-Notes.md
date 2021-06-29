@@ -242,3 +242,10 @@ cvRestoreMemStoragePos( CvMemStorage * storage, CvMemStoragePos * pos )
 ```
 
 cvRestoreMemStoragePos() 函数，是从 CvMemStoragePos 结构中恢复 CvMemStorage 的值。然而目前的实现有点 bug，只要 top 为 NULL ，就从 bottom 赋值。那中间那些 block 呢？被忽略了，感觉不妥。
+
+
+---
+
+20210628  16:43
+
+现在理解了， TvSeq 是基类， TvChain, TvContours,  TvSet 等都是它的子类。 使用 C 的方式实现了继承。没见过的话确实不理解。
