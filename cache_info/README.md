@@ -1,13 +1,14 @@
 # 获得 android 手机的 cache 信息
 
 ## 0x1 目的
-在移动端推理框架 [ncnn](https://github.com/tencent/ncnn) 的 arm neon 汇编代码中， 经常看到 `pld #256` 这样的预取指令， 意思是从内存搬 256bit 到 cache 。为啥是 256？ 大概是说， 是 L1 cacheline 的整数倍。 
+在移动端推理框架 [ncnn](https://github.com/tencent/ncnn) 的 arm neon 汇编代码中， 经常看到 `pld #256` 这样的预取指令， 意思是从内存搬 256 bytes 到 cache 。为啥是 256？ 大概是说， 是 L1 cacheline 的整数倍。 
 
 怎样获得手上 android 手机的 L1 cache 大小， L1 cacheline 大小？
 
 StackOverFlow 上已经有这样的问答了： [Programmatically get the cache line size on Android](https://stackoverflow.com/questions/49619909/programmatically-get-the-cache-line-size-on-android) ， 方法是调用 [cpuinfo](https://github.com/pytorch/cpuinfo) 库来打印 cache 信息; 此外在编译 cpuinfo android 库时生成的 `cpu-info`, `cache-info`, `isa-info` 这三个可执行文件，也可以获取相关信息。
 
 
+涉及的相关代码可以在 [cv-dbg/cache_info](https://gitee.com/aczz/cv-dbg/tree/master/cache_info) 找到。
 
 
 ## 0x2 编译 cpuinfo android 库
