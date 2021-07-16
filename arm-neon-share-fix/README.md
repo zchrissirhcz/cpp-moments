@@ -64,7 +64,7 @@ void vector_dot_assembly(float32_t const* src1, float32_t const * src2, float32_
     "st1 {v3.4s}, [%[dst]] \n"
     : [dst] "+r" (dst), [src1] "+r" (src1), [src2] "+r" (src2), [count] "+r" (count)
     : 
-    : "memory", "v0", "v1", "v2", "v3", "v5"
+    : "cc", "memory", "v0", "v1", "v2", "v3"
     );
 }
 ```

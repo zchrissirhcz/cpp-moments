@@ -56,7 +56,11 @@ void vector_dot_intrinsics(float32_t const *src1, float32_t const *src2, float32
 void vector_dot_assembly(float32_t const* src1, float32_t const * src2, float32_t *dst, uint32_t count)
 {
     asm volatile (
-    "fmul v3.4s, v5.4s, v5.4s \n"
+    //"fmul v3.4s, v5.4s, v5.4s \n"
+    //"fsub v3.4s, v3.4s, v3.4s \n"
+    //"mov v3.4s, v5.4s \n"
+    "mov w0, #0.0 \n"
+    "dup v3.4s, w0 \n"
     "1: \n"
     "ld1 {v0.4s}, [%[src1]], #16 \n"
     "ld1 {v1.4s}, [%[src2]], #16 \n"
@@ -66,8 +70,8 @@ void vector_dot_assembly(float32_t const* src1, float32_t const * src2, float32_
     "bgt 1b \n"
     "st1 {v3.4s}, [%[dst]] \n"
     : [dst] "+r" (dst), [src1] "+r" (src1), [src2] "+r" (src2), [count] "+r" (count)
-    : 
-    : "memory", "v0", "v1", "v2", "v3", "v5"
+    :
+    : "cc", "memory", "v0", "v1", "v2", "v3", "v5"
     );
 }
 
