@@ -44,6 +44,21 @@
             ]
         },
         {
+            "label": "make clean", //执行make，清理二进制
+            "type": "process",
+            "command": "make clean",
+            "args": [
+                "-j4"
+            ],
+            "group": "build",
+            "options": {
+                "cwd": "${workspaceFolder}/build/linux-x64"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ]
+        },
+        {
             "label": "run", //运行程序；调试程序在launch.json里配置
             "type": "shell",
             "command": "./testbed",
