@@ -1,199 +1,81 @@
-## 1. 格式，基本调用
-yuv420sp: NV21, NV12 格式的统称。
+# NV21 和 RGB 的相互转换：原理、实现和优化
 
-OpenCV 的 cvtColor 可以直接做 NV21=>RGB 的转换：
-```
+## 0x0 背景
 
-```
+假设已经知道 NV21 是 YUV420SP 的一种， 知道 RGB 和 YUV 有像素间的相互转换公式。
 
-OpenCV 做 RGB => NV21 的转换， 无法通过单次调用 cvtColor 实现；我的做法是， RGB => I420 => NV21 ,
-RGB => I420 可以用 cvtColor, I420 => NV21， 则可以手写实现（把分离的U、V通道，合并为V/U交错的单个通道）
+从博客找到的转换代码， 用的 magic number 实在让人没信心， 另一方面也没有做 SIMD 优化性能堪忧； 即便用了 OpenCV、 xxYUV 等开源库， 代码又看的一头雾水。NV21 和 RGB 之间的转换，到底怎样转的？4个步骤依次来：
+
+1. 选视频标准。 BT 601， BT 709， BT 2020。 每个标准下的 YUV 和 RGB 转换公式都不一样。
+
+2. 选 full range / narrow range。 full range 就是 `[0, 255]`， narrow range 就是 `[16, 235], [16, 240]`
+
+3. 定点化做近似计算和加速，选合适的移位数，不同位数精度不一样， 还要考虑 SIMD 实现时性能影响
+
+4. 开源库的实现， 前3步都可能魔改， PC 和 设备上的执行的代码可能又不同， 看你是要精度还是性能， 对应不同选择
+
+## 0x1 转换公式
+
+关于各种选择下的公式， 这里推荐看《Video Demystified》一书的相关章节，讲解的通俗易懂； 也有整理的比较好的博客，可以直接查看： https://blog.csdn.net/sunty2016/article/details/106589379
+
+## 0x2 定点化
 
 
-## 2. 原理
-根据 YUV 和 RGB 的转换公式，互相计算。
+## 0x3 开源库实现
 
-公式计算是引起混乱的根源。有 BT 601， BT 709， BT 2020 这些视频标准。
+- OpenCV，用的是 BT 601 narrow range 的魔改版， 定点化使用的移位是20位
+- xxYUV， 用的是 BT 709， 支持 full range / narrow range 的选择
+- OpenCV Android 版， 默认用 carotene 库的实现， 用的是 ？ 标准， 定点化用的移位是5位
 
-选定视频标准后， 还有 full range / narrow range 的差别。 full range 就是 [0, 255]， narrow range 则是更小的一个范围。。具体看公式。。
+
+---------------------
+
+## 0x1 视频标准
 
 
-## 3. 加速原理
+## 0x0 放慢脚步
 
-首先是把 浮点系数 转换为整数， 定点化。 这里的问题在于，多少位定点化是合适的？ 再一次带来了差异。
+在做 NV21 和 RGB 相互转换时， 百度一下 -> CSDN 博客现成代码 -> 拷贝粘贴使用， 这样的步骤有潜在问题：
+1. 性能不行， 通常没做 SIMD 优化
+2. 系数都是 magic number ， 用的不放心
+3. 不够通用， 改天需要 NV12 <=> BGR ， 拷贝然后修改，繁琐也易错
 
-然后是 NEON / SSE 指令加速。 通常和定点化直接算没差别， 除非手写了 bug。。
+对于问题1， 优化的前提是有一份正确的 naive 实现； 而验证 naive 实现正确的前提则是知道**YUV和RGB的转换公式有多种，选择公式后定点化位数还有变数**。
 
-## 4. 和 OpenCV 保持一样的精度？
+## 0x1 背景
 
-选定平台分别为 x86 和 arm neon.
-
-OpenCV 的 cvtColor 底层调用函数，在 x86 走的是 opencv 自己实现的那套， BT 601 + 魔改的 narrow range + 20位定点化移位置。
-
-x86 结果和 arm neon 结果不一致。因为在 arm neon 平台走的是 hal 层的 carotene 库的实现：
-
-- /home/zz/work/opencv-4.5.4-pre/modules/imgproc/src/color_yuv.dispatch.cpp , L118
-```c++
-void cvtTwoPlaneYUVtoBGR(const uchar * src_data, size_t src_step,
-                         uchar * dst_data, size_t dst_step,
-                         int dst_width, int dst_height,
-                         int dcn, bool swapBlue, int uIdx)
-{
-    CV_INSTRUMENT_REGION();
-
-    printf("--- before CALL_HAL(cvtTwoPlaneYUVtoBGR)\n");
-    CALL_HAL(cvtTwoPlaneYUVtoBGR, cv_hal_cvtTwoPlaneYUVtoBGR, src_data, src_step, dst_data, dst_step, dst_width, dst_height, dcn, swapBlue, uIdx); // 这一句，在android上，走的是 cv_hal_cvtTwoPlaneYUVtoBGR
-    printf("--- after  CALL_HAL(cvtTwoPlaneYUVtoBGR)\n");
-
-    CV_CPU_DISPATCH(cvtTwoPlaneYUVtoBGR, (src_data, src_step, dst_data, dst_step, dst_width, dst_height, dcn, swapBlue, uIdx),
-        CV_CPU_DISPATCH_MODES_ALL);
-}
-```
-
-- 3rdparty/carotene/hal/tegra_hal.hpp
-```c++
-#undef cv_hal_cvtTwoPlaneYUVtoBGR
-#define cv_hal_cvtTwoPlaneYUVtoBGR TEGRA_CVT2PYUVTOBGR  // cv_hal_cvtTwoPlaneYUVtoBGR , 被替换为 TEGRA_CVT2PYUVTOBGR 宏
-```
-
-- 3rdparty/carotene/hal/tegra_hal.hpp ， TEGRA_CVT2PYUVTOBGR 宏 ， 略长，做的是 dispatch
-```c++
-#define TEGRA_CVT2PYUVTOBGR(src_data, src_step, dst_data, dst_step, dst_width, dst_height, dcn, swapBlue, uIdx) \
-( \
-    CAROTENE_NS::isSupportedConfiguration() ? \
-        dcn == 3 ? \
-            uIdx == 0 ? \
-                (swapBlue ? \
-                    CAROTENE_NS::yuv420i2rgb(CAROTENE_NS::Size2D(dst_width, dst_height), \
-                                             src_data, src_step, \
-                                             src_data + src_step * dst_height, src_step, \
-                                             dst_data, dst_step) : \
-                    CAROTENE_NS::yuv420i2bgr(CAROTENE_NS::Size2D(dst_width, dst_height), \
-                                             src_data, src_step, \
-                                             src_data + src_step * dst_height, src_step, \
-                                             dst_data, dst_step)), \
-                CV_HAL_ERROR_OK : \
-            uIdx == 1 ? \
-                (swapBlue ? \
-                    CAROTENE_NS::yuv420sp2rgb(CAROTENE_NS::Size2D(dst_width, dst_height), \
-                                              src_data, src_step, \
-                                              src_data + src_step * dst_height, src_step, \
-                                              dst_data, dst_step) : \
-                    CAROTENE_NS::yuv420sp2bgr(CAROTENE_NS::Size2D(dst_width, dst_height), \
-                                              src_data, src_step, \
-                                              src_data + src_step * dst_height, src_step, \
-                                              dst_data, dst_step)), \
-                CV_HAL_ERROR_OK : \
-            CV_HAL_ERROR_NOT_IMPLEMENTED : \
-        dcn == 4 ? \
-            uIdx == 0 ? \
-                (swapBlue ? \
-                    CAROTENE_NS::yuv420i2rgbx(CAROTENE_NS::Size2D(dst_width, dst_height), \
-                                              src_data, src_step, \
-                                              src_data + src_step * dst_height, src_step, \
-                                              dst_data, dst_step) : \
-                    CAROTENE_NS::yuv420i2bgrx(CAROTENE_NS::Size2D(dst_width, dst_height), \
-                                              src_data, src_step, \
-                                              src_data + src_step * dst_height, src_step, \
-                                              dst_data, dst_step)), \
-                CV_HAL_ERROR_OK : \
-            uIdx == 1 ? \
-                (swapBlue ? \
-                    CAROTENE_NS::yuv420sp2rgbx(CAROTENE_NS::Size2D(dst_width, dst_height), \
-                                               src_data, src_step, \
-                                               src_data + src_step * dst_height, src_step, \
-                                               dst_data, dst_step) : \
-                    CAROTENE_NS::yuv420sp2bgrx(CAROTENE_NS::Size2D(dst_width, dst_height), \
-                                               src_data, src_step, \
-                                               src_data + src_step * dst_height, src_step, \
-                                               dst_data, dst_step)), \
-                CV_HAL_ERROR_OK : \
-            CV_HAL_ERROR_NOT_IMPLEMENTED : \
-        CV_HAL_ERROR_NOT_IMPLEMENTED \
-    : CV_HAL_ERROR_NOT_IMPLEMENTED \
-)
+RGB 是一种颜色空间， 像素按 r1 g1 b1 r2 g2 b2 ... 连续排列。 YUV 也是一种颜色空间， NV21 是 YUV 的一种具体格式， 由两个平面（Y平面、VU交错平面）组成:
 
 ```
+Y Y Y Y Y Y Y Y
+Y Y Y Y Y Y Y Y
+Y Y Y Y Y Y Y Y
+Y Y Y Y Y Y Y Y
 
-- 3rdparty/carotene/src/colorconvert.cpp ， yuv420sp2rgb 函数
-
-```c++
-void yuv420sp2rgb(const Size2D &size,
-                  const u8 *  yBase, ptrdiff_t  yStride,
-                  const u8 * uvBase, ptrdiff_t uvStride,
-                  u8 * dstBase, ptrdiff_t dstStride)
-{
-    printf("--- carotene yuv420sp2rgb\n");
-    // input data:
-    ////////////// Y matrix:
-    // {y1, y2,   y3, y4,   y5, y6,   y7, y8,   y9, y10, y11, y12, y13, y14, y15, y16}
-    // {Y1, Y2,   Y3, Y4,   Y5, Y6,   Y7, Y8,   Y9, Y10, Y11, Y12, Y13, Y14, Y15, Y16}
-    ////////////// UV matrix:
-    // {v12, u12, v34, u34, v56, u56, v78, u78, v90 u90, V12, U12, V34, U34, V56, U56}
-
-    // fp version
-    // R = 1.164(Y - 16) + 1.596(V - 128)
-    // G = 1.164(Y - 16) - 0.813(V - 128) - 0.391(U - 128)
-    // B = 1.164(Y - 16)                  + 2.018(U - 128)
-
-    // integer version
-    // R = [((149*y)/2 + (-14248+102*v)      )/2]/32
-    // G = [((149*y)/2 + ((8663- 25*u)-52*v))/2]/32
-    // B = [((149*y)/2 + (-17705+129*u)      )/2]/32
-
-    // error estimation:
-    //Rerr = 0.0000625 * y - 0.00225 * v                - 0.287
-    //Gerr = 0.0000625 * y + 0.0005  * v + 0.000375 * u + 0.128625
-    //Berr = 0.0000625 * y               - 0.002375 * u - 0.287375
-
-    //real error test:
-    //=================
-    //R: 1 less: 520960       ==  3.11% of full space
-    //G: 1 less: 251425       ==  1.50% of full space
-    //B: 1 less: 455424       ==  2.71% of full space
-    //=================
-    //R: 1 more: 642048       ==  3.83% of full space
-    //G: 1 more: 192458       ==  1.15% of full space
-    //B: 1 more: 445184       ==  2.65% of full space
-
-    internal::assertSupportedConfiguration();
-#ifdef CAROTENE_NEON
-    YUV420_CONSTS(3, 2, 0)
-    size_t roiw16 = size.width >= 15 ? size.width - 15 : 0;
-
-    for (size_t i = 0u; i < size.height; i+=2)
-    {
-        const u8 * uv = internal::getRowPtr(uvBase, uvStride, i>>1);
-        const u8 * y1 = internal::getRowPtr(yBase, yStride, i);
-        const u8 * y2 = internal::getRowPtr(yBase, yStride, i+1);
-        u8 * dst1 = internal::getRowPtr(dstBase, dstStride, i);
-        u8 * dst2 = internal::getRowPtr(dstBase, dstStride, i+1);
-
-        size_t dj = 0u, j = 0u;
-        for (; j < roiw16; dj += 48, j += 16)
-        {
-            internal::prefetch(uv + j);
-            internal::prefetch(y1 + j);
-            internal::prefetch(y2 + j);
-#if !defined(__aarch64__) && defined(__GNUC__) && __GNUC__ == 4 &&  __GNUC_MINOR__ < 7 && !defined(__clang__)
-            CONVERTYUV420TORGB(3, d1, d0, q5, q6)
-#else
-            convertYUV420.ToRGB(y1 + j, y2 + j, uv + j, dst1 + dj, dst2 + dj);   /// #define YUV420_CONSTS(cn, bIdx, vIdx) _convertYUV420<cn, bIdx, vIdx> convertYUV420;
-#endif
-        }
-        for (; j + 2 <= size.width; j+=2, dj += 6)
-        {
-            convertYUV420ToRGB<3, 2, 0>(y1+j, y2+j, uv+j, dst1 + dj, dst2 + dj);
-        }
-    }
-#else
-    (void)size;
-    (void)yBase;
-    (void)yStride;
-    (void)uvBase;
-    (void)uvStride;
-    (void)dstBase;
-    (void)dstStride;
-#endif
-}
+V U V U V U V U
+V U V U V U V U
 ```
+
+当计算 NV21 和 RGB 两种图像格式的相互转换， 一方面注意采样（一个 2x2 格子里的 4 个 Y 对应一组 V、U）， 另一方面注意单组 YUV 和 RGB 的转换公式； 在确定了公式的基础上， 程序实现阶段还可以适当修改公式， 在速度、精度之前权衡， 实现程序的优化。
+
+实际上， YUV 格式根据采样、排列顺序，有很多细分， YUV420SP 是其中的一种， NV21 和 NV12 则是 YUV420SP 的进一步细分， 两者差别仅在于 U 和 V 的顺序： NV21 是先 V 再 U 的交错， NV12 则是先 U 再 V 的交错。类似的， RGB 和 BGR 格式的差别，仅仅在于 R 和 B 的顺序交换。因此， 如下4种转换， 仅仅在于UV顺序、RGB顺序不同，可以一并实现：
+- NV21 => RGB
+- NV12 => RGB
+- NV21 => BGR
+- NV12 => BGR
+
+## 0x1 原理
+
+YUV 和 RGB 的转换公式并不唯一。按视频标准可以选择 BT 601， BT 709， BT 2020； 选定视频标准后， 还可以在 full range （0到255范围） 和 narrow range （16到235或240范围） 之间选择； 在此基础上， 用定点化方法（浮点数倍数缩放，取近似，整数计算替代浮点计算）时会挑选的不同移位大小，会再次造成精度差异。
+
+很多刚接触 YUV 和 NV21 格式转换的新人， 在不了解这些转换公式的弯弯绕绕的前提下， 直接搜索格式转换的代码， 容易陷入困扰： 同样的输入图像， A 博客、B 博客的代码结果不一样， C 开源库、 D开源库的结果也不一样， 该用哪个呢？
+
+例如：
+- OpenCV，用的是 BT 601 narrow range 的魔改版， 定点化使用的移位是20位
+- xxYUV， 用的是 BT 709， 支持 full range / narrow range 的选择
+- OpenCV Android 版， 默认用 carotene 库的实现， 用的是 ？ 标准， 定点化用的移位是5位
+
+关于各种选择下的公式， 这里推荐看《Video Demystified》一书的相关章节，讲解的通俗易懂； 也有整理的比较好的博客，可以直接查看： https://blog.csdn.net/sunty2016/article/details/106589379
+
+
+## 0x2 
