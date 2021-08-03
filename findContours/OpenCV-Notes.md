@@ -249,3 +249,11 @@ cvRestoreMemStoragePos() 函数，是从 CvMemStoragePos 结构中恢复 CvMemSt
 20210628  16:43
 
 现在理解了， TvSeq 是基类， TvChain, TvContours,  TvSet 等都是它的子类。 使用 C 的方式实现了继承。没见过的话确实不理解。
+
+
+
+
+`tvFindContours_Impl()` 的关键三个函数：
+- tvStartFindContours()
+- tvFindNextContour()
+- tvEndFindContours()
