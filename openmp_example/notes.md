@@ -30,7 +30,14 @@ export  OMP_DISPLAY_ENV="TRUE"
 当摩尔定律遭遇功耗墙 Power Wall。
 功耗墙、温度墙，通俗解释： http://www.pcpop.com/article/4515263.shtml
 
+## 实践
 
+1. 获取 openmp 版本信息 
 
+get_openmp_version 目录
 
+2. rgb2gray 用 openmp 优化
 
+限定 release 模式。8K 大图。
+在 linux x64 有明显优化效果： 66ms => 12ms
+在 android arm64 上反而效果不好： 78ms => 101ms（浮点）,  9ms =>56 ms（定点）
