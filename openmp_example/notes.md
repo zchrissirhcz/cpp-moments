@@ -13,3 +13,17 @@ test, multiple thread: took 0.000214 ms
 `#pragma omp parallel num_threads(n)` 手动设定n个线程的并行执行。
 
 只调用 `#pragma omp parallel for`，不链接 openmp。则根本没有加速效果！（注意，同样的代码，两次运行，第二次容易比第一次快）。
+
+## 资源
+openmp官方对支持openmp的编译器和工具的记录： https://www.openmp.org/resources/openmp-compilers-tools/
+
+https://hpc.llnl.gov/tuts/openMP/ 一个入门tutorial
+
+omp-hands-on-SC08.pdf （google搜索。位于 https://www.openmp.org  的一个文件）
+
+官方文档pdf版本： openmp-TR6.pdf
+
+export  OMP_DISPLAY_ENV="TRUE" 
+
+
+

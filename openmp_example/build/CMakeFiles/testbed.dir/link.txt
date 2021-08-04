@@ -1,1 +1,0 @@
-/home/zz/soft/llvm13/bin/clang++ -O3 -DNDEBUG CMakeFiles/testbed.dir/main.cpp.o -o testbed 
