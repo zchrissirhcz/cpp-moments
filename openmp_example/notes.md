@@ -17,13 +17,20 @@ test, multiple thread: took 0.000214 ms
 ## 资源
 openmp官方对支持openmp的编译器和工具的记录： https://www.openmp.org/resources/openmp-compilers-tools/
 
-https://hpc.llnl.gov/tuts/openMP/ 一个入门tutorial
+https://hpc.llnl.gov/tuts/openMP/ 一个入门tutorial， 中文翻译：https://www.jianshu.com/p/9931c05f4058
 
 omp-hands-on-SC08.pdf （google搜索。位于 https://www.openmp.org  的一个文件）
 
 官方文档pdf版本： openmp-TR6.pdf
 
 export  OMP_DISPLAY_ENV="TRUE" 
+
+## OpenMP: An Industry Initiative in Support of Protable SMP APplication Software
+
+当摩尔定律遭遇功耗墙 Power Wall。
+功耗墙、温度墙，通俗解释： http://www.pcpop.com/article/4515263.shtml
+
+
 
 
 
