@@ -44,7 +44,13 @@ find_package(OpenCV REQUIRED)
 
 
 
-add_executable(testbed main.cpp)
+add_executable(testbed
+    main.cpp
+    cpu.h
+    cpu.cpp
+    option.h
+    option.cpp
+)
 # target_include_directories(testbed PRIVATE "/home/zz/work/git_mirror/fmt/include")
 
 

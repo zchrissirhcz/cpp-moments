@@ -18,3 +18,4 @@ adb pull /data/local/tmp/rgb2gray/ASRDebug_0_7680x4320_gray_omp.png         $SAV
 adb pull /data/local/tmp/rgb2gray/ASRDebug_0_7680x4320_gray_fixed.png       $SAVE_DIR
 adb pull /data/local/tmp/rgb2gray/ASRDebug_0_7680x4320_gray_fixed_omp.png   $SAVE_DIR
 adb pull /data/local/tmp/rgb2gray/ASRDebug_0_7680x4320_gray_fixed_simd.png  $SAVE_DIR
+adb pull /data/local/tmp/rgb2gray/ASRDebug_0_7680x4320_gray_fixed_simd2.png $SAVE_DIR
