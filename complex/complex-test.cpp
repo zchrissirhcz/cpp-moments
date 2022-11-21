@@ -7,10 +7,10 @@ using std::endl;
 using namespace plain;
 
 
-// std::ostream& operator<<(std::ostream& os, const complex& x)
-// {
-//     return os << "(" << x.real() << ", " << x.imag() << ")";
-// }
+std::ostream& operator<<(std::ostream& os, const complex& x)
+{
+    return os << "(" << x.real() << ", " << x.imag() << ")";
+}
 
 complex operator+(const complex& c1, const complex& c2)
 {
@@ -70,41 +70,34 @@ complex operator-(const complex& c1)
     return complex(-c1.real(), -c1.imag());
 }
 
-
-std::ostream& operator<<(std::ostream& os, const std::string& s)
-{
-    return os << s;
-}
-
 int main()
 {
     complex c1(2, 1);
     complex c2(4, 0);
 
-    //cout << "c1 is: " << std::string(c1) << endl;
     cout << "c1 is: " << c1 << endl;
-    // cout << "c2 is: " << c2 << endl;
+    cout << "c2 is: " << c2 << endl;
 
-    // cout << "c1 + c2: " << c1 + c2 << endl;
-    // cout << "c1 is: " << c1 << endl;
+    cout << "c1 + c2: " << c1 + c2 << endl;
+    cout << "c1 is: " << c1 << endl;
 
-    // cout << "c1 - c2: " << c1 - c2 << endl;
-    // cout << c1 * c2 << endl;
-    // cout << c1 / 2 << endl;
+    cout << "c1 - c2: " << c1 - c2 << endl;
+    cout << c1 * c2 << endl;
+    cout << c1 / 2 << endl;
 
-    // cout << conj(c1) << endl;
-    // cout << norm(c1) << endl;
-    // cout << polar(10, 4) << endl;
+    cout << conj(c1) << endl;
+    cout << norm(c1) << endl;
+    cout << polar(10, 4) << endl;
 
-    // cout << (c1 += c2) << endl;
+    cout << (c1 += c2) << endl;
 
-    // cout << (c1 == c2) << endl;
-    // cout << (c1 != c2) << endl;
-    // cout << +c2 << endl;
-    // cout << -2 << endl;
+    cout << (c1 == c2) << endl;
+    cout << (c1 != c2) << endl;
+    cout << +c2 << endl;
+    cout << -2 << endl;
 
-    // cout << (c2 - 2) << endl;
-    // cout << (5 + c2) << endl;
+    cout << (c2 - 2) << endl;
+    cout << (5 + c2) << endl;
 
     return 0;
 }

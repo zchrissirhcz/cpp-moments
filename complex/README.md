@@ -1,13 +1,6 @@
 # 复习C++: complex 类的实现
 
-在看候捷的 C++ 视频课程第三集第四集时节奏不太适应， 于是关掉视频， 手动从头实现 complex 类。相比于原版的参考代码， 差异为：
-- 去掉了 `friend` 友元的处理
-- 增加了打印类对象的不同实现方式， 基于 cast operator
-- 增加讨论了重载的 operator 操作符函数放在哪里， 会引发什么问题的实验代码
-
-代码放在了 github， 可以参考：
-
-https://github.com/zchrissirhcz/cpp-moments/tree/main/complex
+在看候捷的 C++ 视频课程第三集第四集时节奏不太适应， 于是关掉视频手动从头实现 complex 类。
 
 ## 0x1 成员定义和构造函数的实现
 ```c++
@@ -60,11 +53,8 @@ int main()
 ```
 
 ## 0x3 打印 complex 对象
-打印 complex 对象有两种实现方式：
-1. 重载全局的 `operator<<` 操作符函数
-2. 将 complex 对象转为 std::string 类型后再打印， 并且转换过程是隐式执行的
+简单正确的方法是， 通过重载全局的 `operator<<` 操作符函数实现:
 
-### 方法1: 重载全局的 `operator<<` 操作符函数实现 complex 对象的打印
 ```c++
 std::ostream& operator<<(ostream& os, const complex& c)
 {
@@ -81,42 +71,7 @@ int main()
 }
 ```
 
-### 方法2: 用 cast operator 实现 complex 对象隐式转换为 std::string 后打印
-```c++
-class complex
-{
-public:
-    ...
-    operator std::string() const
-    {
-        std::string r = "(" + std::to_string(re) + ", " + std::to_string(im) + ")";
-        return r;
-    }
-    ...
-};
-```
-
-此外， 由于 STL 中内置的对于 `std::string` 对象的打印支持对应的 `opeerator<<` 函数是模板函数， 而模板实参推导时不会做隐式类型转换( `complex` => `std::string`), 导致无法匹配到 STL 中定义的这个函数， 从而编译报错； 解决办法是手动增加一个不带模板的 `std::string` 对象打印的 `operator<<` 函数. 这在之前的文章 [C++ 打印类对象: 基于cast operator](https://zhuanlan.zhihu.com/p/378435303) 中以打印分数类 `Fraction` 为例做过细致说明可以参考。
-
-相关的两个代码； 
-
-```c++
-template<typename _CharT, typename _Traits, typename _Allocator>
-    std::basic_ostream<_CharT, _Traits>&
-    operator<<(std::basic_ostream<_CharT, _Traits>& __os,
-           const basic_string<_CharT, _Traits, _Allocator>& __str)
-    { return __os << __str._M_base(); }
-```
-
-```c++
-// https://en.cppreference.com/w/cpp/language/template_argument_deduction%23Implicit_conversions
-std::ostream& operator<<(std::ostream& os, const std::string& s)
-{
-    return os << s;
-}
-```
-
-
+也曾尝试基于花哨的 conversion operator 实现 cout 打印对象， 但失败了。具体见 [conversion_operator](../conversion_operator/README.md).
 
 
 ## 0x4 支持两个复数的加法/减法等操作
@@ -386,3 +341,4 @@ complex& complex::operator+=(const complex& other)
 
 ## 0x6 References
 - [C++ 打印类对象: 基于cast operator](https://zhuanlan.zhihu.com/p/378435303)
+- https://stackoverflow.com/questions/3044690/operator-stdstring-const

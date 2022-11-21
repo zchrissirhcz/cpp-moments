@@ -9,14 +9,14 @@ complex& complex::operator+=(const complex& other)
     return *this;
 }
 
-inline complex& complex::operator-=(const complex& other)
+complex& complex::operator-=(const complex& other)
 {
     re -= other.real();
     im -= other.imag();
     return *this;
 }
 
-inline complex& complex::operator*=(const complex& other)
+complex& complex::operator*=(const complex& other)
 {
     double new_re = re * other.real() - im * other.imag();
     double new_im = re * other.imag() + im * other.real();

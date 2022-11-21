@@ -1,7 +1,0 @@
-{
-    "files.associations": {
-        "string": "cpp",
-        "functional": "cpp",
-        "istream": "cpp"
-    }
-}

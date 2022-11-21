@@ -16,12 +16,6 @@ public:
     double real() const { return re; }
     double imag() const { return im; }
 
-    operator std::string() const
-    {
-        std::string r = "(" + std::to_string(re) + ", " + std::to_string(im) + ")";
-        return r;
-    }
-
 private:
     double re;
     double im;
