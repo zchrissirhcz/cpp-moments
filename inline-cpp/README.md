@@ -441,7 +441,7 @@ big.cpp circle_area() 314.159000
 
 涉及的代码，上传到了
 
-https://gitee.com/aczz/cv-dbg/tree/master/inline-cpp
+https://github.com/zchrissirhcz/cpp-moments/tree/main/inline-cpp
 
 ## 0x5. References
 

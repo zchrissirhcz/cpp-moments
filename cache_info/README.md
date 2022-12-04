@@ -8,7 +8,7 @@
 StackOverFlow 上已经有这样的问答了： [Programmatically get the cache line size on Android](https://stackoverflow.com/questions/49619909/programmatically-get-the-cache-line-size-on-android) ， 方法是调用 [cpuinfo](https://github.com/pytorch/cpuinfo) 库来打印 cache 信息; 此外在编译 cpuinfo android 库时生成的 `cpu-info`, `cache-info`, `isa-info` 这三个可执行文件，也可以获取相关信息。
 
 
-涉及的相关代码可以在 [cv-dbg/cache_info](https://gitee.com/aczz/cv-dbg/tree/master/cache_info) 找到。
+涉及的相关代码可以在 [cpp-moments/cache_info](https://github.com/zchrissirhcz/cpp-moments/tree/main/cache_info) 找到。
 
 
 ## 0x2 编译 cpuinfo android 库
