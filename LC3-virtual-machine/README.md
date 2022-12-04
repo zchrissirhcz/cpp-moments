@@ -115,14 +115,14 @@ make: *** [makefile:7：run] 错误 254
 对于 segmentation fault， 希望报错是英文原版的。不要强行翻译啊。
 例如原版输出：
 ```
-(base) zz@arcsoft-43% ./a.out ./2048.obj 
+(base) zz@localhost% ./a.out ./2048.obj 
 Control the game using WASD keys.
 zsh: segmentation fault (core dumped)  ./a.out ./2048.obj
 ```
 
 而通过 make run 执行得到的报错则是:
 ```
-(base) zz@arcsoft-43% make run
+(base) zz@localhost% make run
 ./a.out ./2048.obj
 Control the game using WASD keys.
 make: *** [makefile:7: run] 段错误 (核心已转储)
