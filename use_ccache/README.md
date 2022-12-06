@@ -53,14 +53,30 @@ cmake \
 time cmake --build $BUILD_DIR -j
 ```
 
-评测结果：
-
+ncnn-Android-arm64 编译速度评测结果：
 | id  | method           | time cost |
 | --- | ---------------- | --------- |
 | 1   | make -j          | 28.913 s  |
 | 2   | ninja            | 23.639 s  |
 | 3   | make -j + ccache | 1.349 s   |
 | 4   | ninja + ccache   | **0.840 s**  |
+
+## 4.2 性能评测: TV
+
+Linux(x86) + Clang16.0:
+| id | method | time cost |
+| -- | ------ | --------- |
+| 1  | make -j | 17.87 s  |
+| 2  | ccache + make -j | 5.77 s |
+| 3  | ninja   | 17.38 s |
+| 4  | ccache + ninja    | 2.84 s |
+
+Android NDK-r21e:
+| id | method  |  time cost  |
+| -- | ------- | ----------- |
+|  1 | ninja   | 49.73 s     |
+|  2 | ninja + ccache | 1.253 s |
+
 
 ## 5. 性能评测： clang+mlir
 real	0m6.316s
