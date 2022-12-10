@@ -74,24 +74,47 @@ void my_equal_success(const char* expected, const char* actual, const char* file
         return; \
     }
 
-void hello()
+class TestEntity
 {
-    printf("hello world\n");
-}
-
-struct MyTestRegistry
-{
-    static std::vector<std::function<void()>> utest_funcs;
-
-    static void reg()
+private:
+    TestEntity() { };
+    ~TestEntity() { };
+public:
+    TestEntity(const TestEntity& other) = delete;
+    TestEntity operator=(const TestEntity& other) = delete;
+    
+    static TestEntity& get_instance()
     {
-        utest_func
+        static TestEntity entity;
+        return entity;
     }
+    int add(std::function<void()> f)
+    {
+        test_funcs.push_back(f);
+        return 0;
+    }
+    int run_all_test_functions()
+    {
+        for (auto f : test_funcs)
+        {
+            f();
+        }
+        return 0;
+    }
+private:
+    std::vector<std::function<void()>> test_funcs;
 };
 
 #define MY_TEST(name) \
-    g_my_utest_funcs.push_back(hello); \
+    void my_test_##name(); \
+    int my_test_mark_##name = TestEntity::get_instance().add(my_test_##name); \
     void my_test_##name()
+
+#define MY_UNUSED(x) (void)(x)
+
+#define MY_RUN_ALL_TESTS() \
+    int my_test_invoker = TestEntity::get_instance().run_all_test_functions(); \
+    MY_UNUSED(my_test_invoker)
 
 // Returns the factorial of n
 int Factorial(int n)
@@ -131,10 +154,6 @@ MY_TEST(factorial)
 
 int main()
 {
-    g_my_utest_funcs.push_back(my_test_factorial);
-    g_my_utest_funcs.push_back(my_test_equal);
-    for (auto& fun : g_my_utest_funcs)
-    {
-        fun();
-    }
+    MY_RUN_ALL_TESTS();
+    return 0;
 }

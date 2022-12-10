@@ -1,23 +1,30 @@
 cmake_minimum_required(VERSION 3.20)
 project(my_utest)
-set(CMAKE_CXX_STANDARD 11)
+#set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include("output_dir.cmake")
 
 add_executable(testbed
-    #utest_v1.cpp
-    #utest_v2.cpp
-    #utest_v3.cpp
-    #utest_v4.cpp
-    #utest_v5.cpp
-    #utest_v6.cpp
-    #utest_v6_gtest.cpp
-    #utest_v7.cpp
-    #utest_v8.cpp
-    #utest_v9_demo.cpp
-    utest_v9.cpp
+  #utest_v1.cpp
+  #utest_v2.cpp
+  #utest_v3.cpp
+  #utest_v4.cpp
+  #utest_v5.cpp
+  #utest_v6.cpp
+  #utest_v6_gtest.cpp
+  #utest_v7.cpp
+  #utest_v8.cpp
+  #utest_v9_demo.cpp
+  utest_v9.cpp
+  #utest_v9_demo2.cpp
+  
+  # gft_demo.cpp
+  # gft/test.cpp
+  # gft/log.cpp
 )
+target_include_directories(testbed PUBLIC ${CMAKE_SOURCE_DIR})
 
 #--- GoogleTest
 if(ANDROID)

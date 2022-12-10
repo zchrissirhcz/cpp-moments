@@ -1,4 +1,6 @@
-# 从头实现一个简陋单元测试库
+# MY_TEST: 从头实现一个简陋的、基于C++的单元测试框架
+
+[TOC]
 
 ## 0. 目的
 对于 C/C++ 不熟悉， 对于单元测试也不熟悉， 练习一下。下面使用 client 和 dev， 分别表示单元测试库的使用者、开发者角色视角。开发环境是 ubuntu 22.04 搭配 Clang-16.
@@ -443,7 +445,165 @@ int main()
 ```
 
 ## 9. 真正的注册：注册后自动执行
-(WIP)
+### 目标
+目标是， 在 `main()` 函数中只需要调用一个函数， 就能运行所有的单元测试。
+```c++
+int main()
+{
+    MY_RUN_ALL_TESTS();
+    return 0;
+}
+```
+而不是手动调用每个单元测试函数
+```c++
+int main()
+{
+    my_test_factorial();
+    my_test_equal();
+    ...
+    return 0;
+}
+```
+
+这就需要在创建单元测试函数的时候， 就进行注册。
+
+### try0: 在 main() 函数之前运行函数
+定义一个全局对象， 它的构造函数会在 main() 之前运行。 例如：
+```c++
+#include <stdio.h>
+#include <functional>
+
+class Entity
+{
+public:
+    Entity()
+    {
+        printf("Entity constructor\n");
+    }
+};
+
+Entity entity;
+
+int main()
+{
+    printf("hello, main()\n");
+
+    return 0;
+}
+```
+
+输出内容：
+```
+Entity constructor
+hello, main()
+```
+
+### 只用一个Entity对象， 在 main() 前多次执行它的成员函数
+
+#### utest_v9_try1.cpp
+需要在类中添加静态函数， 使得每次返回同一个对象， 而不是直接调用构造函数导致创建多个对象。实现如下：
+
+```c++
+#include <stdio.h>
+
+class Entity
+{
+private:
+    Entity() { };
+    ~Entity() { };
+public:
+    Entity(const Entity& other) = delete;
+    Entity operator=(const Entity& other) = delete;
+    
+    static Entity& get_instance()
+    {
+        static Entity entity;
+        return entity;
+    }
+    int hello()
+    {
+        printf("hello, entity()\n");
+        return 0;
+    }
+};
+
+int g1 = Entity::get_instance().hello();
+int g2 = Entity::get_instance().hello();
+
+int main()
+{
+    printf("hello main\n");
+    return 0;
+}
+```
+
+这里需要注意的是， 必须定义 `g1` 和 `g2` 这样的“无意义”变量， 否则直接调用 `Entity::get_instance().hello()` 会无法编译通过。
+
+运行输出：
+```
+hello, entity()
+hello, entity()
+hello main
+```
+
+#### utest_v9_try2.cpp: 在最后一个全局变量的赋值阶段， 打印前面所有全局变量创建的name
+```c++
+#include <stdio.h>
+#include <string>
+#include <vector>
+
+class Entity
+{
+private:
+    Entity() { };
+    ~Entity() {};
+public:
+    Entity(const Entity& other) = delete;
+    Entity operator=(const Entity& other) = delete;
+    
+    static Entity& get_instance()
+    {
+        static Entity entity;
+        return entity;
+    }
+    int hello(const std::string& name)
+    {
+        vs.push_back(name);
+        return 0;
+    }
+
+    int print_all_names()
+    {
+        for (size_t i = 0; i < vs.size(); i++)
+        {
+            printf("%s\n", vs[i].c_str());
+        }
+        return 0;
+    }
+
+private:
+    std::vector<std::string> vs;
+};
+
+int g1 = Entity::get_instance().hello("one");
+int g2 = Entity::get_instance().hello("two");
+int g3 = Entity::get_instance().print_all_names();
+
+int main()
+{
+    printf("hello main\n");
+    return 0;
+}
+```
+
+打印输出：
+```
+one
+two
+hello main
+```
+
+#### std::function 的基本使用
 
 `std::function` 的基本用法：
 ```c++
@@ -462,3 +622,68 @@ int main()
     return 0;
 }
 ```
+
+#### 放到 utest_v9.cpp 中， 实现单元测试函数的注册和调用
+```c++
+
+class TestEntity
+{
+private:
+    TestEntity() { };
+    ~TestEntity() { };
+public:
+    TestEntity(const TestEntity& other) = delete;
+    TestEntity operator=(const TestEntity& other) = delete;
+    
+    static TestEntity& get_instance()
+    {
+        static TestEntity entity;
+        return entity;
+    }
+    int add(std::function<void()> f)
+    {
+        test_funcs.push_back(f);
+        return 0;
+    }
+    int run_all_test_functions()
+    {
+        for (auto f : test_funcs)
+        {
+            f();
+        }
+        return 0;
+    }
+private:
+    std::vector<std::function<void()>> test_funcs;
+};
+```
+
+```c++
+#define MY_UNUSED(x) (void)(x)
+
+#define MY_RUN_ALL_TESTS() \
+    int my_test_invoker = TestEntity::get_instance().run_all_test_functions(); \
+    MY_UNUSED(my_test_invoker)
+
+```
+
+```c++
+int main()
+{
+    MY_RUN_ALL_TESTS();
+    return 0;
+}
+```
+
+## 10. 总结
+首先从 C/C++ 标准库内置的 `assert()` 宏入手， 自行定义了一个 `MY_ASSERT` 宏并且能同时在 Debug 和 Release 模式下使用。
+
+接下来对 `MY_ASSERT` 做了适当扩展， 在检测到 expr 为 false 时打印了多行信息， 参考了 gtest 的输出。并且基于 ascii escape chars 设置了 failure 和 success 时不同的颜色。
+
+然后是注册单元测试函数， 即 `TEST(casename)` 宏展开为 `void` 型返回值的函数， 并进一步基于 Singleton 模式和 std::function 进行了单元测试函数的注册， 以及一次性运行所有测试函数的功能实现。（参照了 [graphi-t](https://github.com/PENGUINLIONG/graphi-t) 的实现）。
+
+不足之处：不支持 C。 需要使用 C++11 或更高的标准。 没考虑多线程情况。输出内容缺少类似 gtest 的统计信息。
+
+## 11. References
+- https://github.com/PENGUINLIONG/graphi-t
+- https://zhuanlan.zhihu.com/p/37469260
