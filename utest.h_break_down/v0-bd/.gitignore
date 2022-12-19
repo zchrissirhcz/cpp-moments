@@ -3,3 +3,5 @@ build/
 testbed
 a.out
 qtest
+*.log
+filter_test

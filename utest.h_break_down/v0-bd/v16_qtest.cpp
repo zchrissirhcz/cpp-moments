@@ -8,7 +8,7 @@
 int qtest_current_fail_cnt = 0; // number of failures in one test function
 int qtest_total_cnt = 0;
 int qtest_fail_cnt = 0; // number of failures in one test set
-const int qtest_test_total = 2;
+const int qtest_test_total = 3;
 
 #define TEST(set, name) \
     void qtest_##set##_##name()
@@ -20,11 +20,14 @@ const int qtest_test_total = 2;
         if (strcmp(#cond, "==") == 0) \
         { \
             printf("Expected equality of these values:\n"); \
-            printf("  %s\n  %s\n", #x, #y); \
+            printf("  %s\n", #x); \
+            qtest_evaluate_if_required(#x, x); \
+            printf("  %s\n", #y); \
+            qtest_evaluate_if_required(#y, y); \
         } \
         else \
         { \
-            printf("Expected: (%s) %s (%s), actual: %s vs %s\n", #x, #cond, #y, #x, #y); \
+            printf("Expected: (%s) %s (%s), actual: %s vs %s\n", #x, #cond, #y, std::to_string(x).c_str(), std::to_string(y).c_str()); \
         } \
         qtest_current_fail_cnt++; \
     }
@@ -80,16 +83,23 @@ void qtest_evaluate_if_required(const char* str, T value)
 
 TEST(c, 21)
 {
-    ASSERT_EQ(1, 1);
-    ASSERT_EQ(1+2, 2+2);
-    ASSERT_EQ(1, 2);
-    ASSERT_EQ(2, 2);
+    EXPECT_EQ(1, 1);
+    EXPECT_EQ(1+2, 1+3);
+    EXPECT_EQ(1, 2);
+    EXPECT_EQ(2, 2);
+    EXPECT_NE(1+2, 2+1);
 }
 
 TEST(c, 22)
 {
     ASSERT_EQ(1, 1);
     ASSERT_EQ(2, 2);
+    ASSERT_EQ(2, 3);
+}
+
+TEST(c, 23)
+{
+    ASSERT_EQ(1+2, 1+3);
 }
 
 void qtest_init()
@@ -131,6 +141,7 @@ int RUN_ALL_TESTS()
     // testcase1
     RUN_SINGLE_TEST(c, 21);
     RUN_SINGLE_TEST(c, 22);
+    RUN_SINGLE_TEST(c, 23);
 
     // summary for test set `c`
     printf("[----------] %d tests from c (0 ms total)\n", qtest_total_cnt);
@@ -141,7 +152,7 @@ int RUN_ALL_TESTS()
 
     int passed_test_count = qtest_total_cnt - qtest_fail_cnt;
     printf("[  PASSED  ] %d test", passed_test_count);
-    if (passed_test_count > 1)
+    if (passed_test_count != 1)
     {
         printf("s");
     }

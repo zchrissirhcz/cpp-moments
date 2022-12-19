@@ -11,7 +11,11 @@ add_executable(testbed
   #v13_gtest.cpp
   #v14_gtest.cpp
   #v15_gtest.cpp
-  v16_gtest.cpp
+  #v16_gtest.cpp
+  #v21_gtest.cpp
+  #v22_gtest.cpp
+  #v31_gtest.cpp
+  v41_gtest.cpp
 )
 target_include_directories(testbed PUBLIC ${CMAKE_SOURCE_DIR})
 
@@ -21,7 +25,11 @@ add_executable(qtest
   #v13_qtest.cpp
   #v14_qtest.cpp
   #v15_qtest.cpp
-  v16_qtest.cpp
+  #v16_qtest.cpp
+  #v21_qtest.cpp
+  #v22_qtest.cpp
+  #v31_qtest.cpp
+  v41_qtest.cpp
 )
 
 #--- GoogleTest
@@ -46,3 +54,11 @@ target_link_libraries(testbed
   GTest::gtest_main
 )
 
+
+add_executable(filter_test
+  filter_test.cpp
+)
+target_link_libraries(filter_test
+  GTest::gtest
+  GTest::gtest_main
+)

@@ -5,7 +5,7 @@
 
 文本接下来使用 “client” 表示调用侧的代码， 使用 “dev” 表示测试框架的开发端的代码。
 
-## 1. 断言 - 最简单的实现
+## 1. 断言的实现
 打算实现的断言如下， 其中 `EXPECT_*` 系列不会导致程序终止， 仅输出 Failure 和文件、行号信息。`ASSERT_*` 系列则在输出报错信息的基础上， 让当前测试用例函数停止运行。
 
 | EXPECT_* 系列    | ASSERT_* 系列   |
@@ -279,44 +279,62 @@ void qtest_evaluate_if_required(const char* str, T value)
     }
 ```
 
-实际上， 不仅仅是 `ASSERT_EQ()` 需要按需对传入的参数求值， 其他的断言宏也需要这样处理。 但是限于篇幅， 本小节先不处理其他宏了， 后续有空再统一处理。
+实际上， 不仅仅是 `ASSERT_EQ()` 需要按需对传入的参数求值， 其他的断言宏也需要这样处理。具体处理见代码 v16_qtest.cpp.
 
-### client 端代码
+## 2. 自动注册的实现
+前一小节专注于断言的实现， 注册每个单元测试函数则是手动完成的， 主要是在 `RUN_ALL_TESTS()` 函数中：
 ```c++
+    RUN_SINGLE_TEST(c, 21);
+    RUN_SINGLE_TEST(c, 22);
+    RUN_SINGLE_TEST(c, 23);
+```
+本小节则专注于， 避免在 `RUN_ALL_TESTS()` 中手动指定每个需要测试的函数， 改为自动执行所有的单元测试函数。
 
-// 定义测试用例函数。
-void testcase1()
-{
-    EXPECT_EQ(1, 1);
-    EXPECT_NE(1, 2);
-    EXPECT_LT(1, 2);
-    EXPECT_LE(1, 2);
-    EXPECT_GT(2, 1);
-    EXPECT_GE(2, 1);
-    EXPECT_TRUE(1);
-    EXPECT_FALSE(0);
-}
+### 2.1 自动注册和执行所有单元测试函数
+`TEST(set, name)` 的形式， 决定了相同 `set` 的单元格测试函数属于同一个 set。
+尝试了最新版 utest.h (2022-12-19), 并不支持单元测试分组分别输出。
 
-// 定义测试用例函数。
-void testcase2()
-{
-    ASSERT_EQ(1, 1);
-    //ASSERT_NE(1, 2);
-    ASSERT_NE(1, 1); // 故意写一个失败的case，用于检查输出是否符合预期
-    ASSERT_LT(1, 2);
-    ASSERT_LE(1, 2);
-    ASSERT_GT(2, 1);
-    ASSERT_GE(2, 1);
-    ASSERT_TRUE(1);
-    ASSERT_FALSE(0);
-}
+在 v21_gtest.cpp 和 v21_qtest.cpp 中， 首先添加了多组测试用例（包括 c, d, e 这三组， 每一组有2个测试函数）。
 
+基于先前实现的 “一个简陋的单元测试框架的实现”， 使用 Singleton 模式实现了自动注册和运行所有单元测试函数。 不过现在并没有按 set 分组， 而是直接全量执行和输出。
+
+![](v21_gtest_qtest_compare.png)
+
+### 2.2 用 map 实现测试用例分组
+不用 unordered_map 的原因是， 在遍历 unordered_map 时无法保证和 insert 时的顺序是一样的。
+
+此外还创建了 `TestEntity:;make_proper_str()` 函数用于正确的生成字符串的单数和负数形式。
+
+## 3. 添加颜色
+```c++
+#define QTEST_ESCAPE_COLOR_RED "\x1b[31m"
+#define QTEST_ESCAPE_COLOR_GREEN "\x1b[32m"
+#define QTEST_ESCAPE_COLOR_YELLOW "\x1b[33m"
+#define QTEST_ESCAPE_COLOR_END "\x1b[0m"
+```
+使用如上4个表示颜色的宏即可实现红色绿色的打印。
+
+打印效果和 gtest 原版一样：
+![](v31_gtest_qtest_output_compare.png)
+
+## 4. 支持带通配符（wildcard）的过滤条件
+
+GoogleTest 里对于过滤的说明文档： https://github.com/google/googletest/blob/main/docs/advanced.md#running-a-subset-of-the-tests
+
+### 4.1 支持正向的过滤
+```c++
 int main()
 {
-    testcase1();
-    testcase2();
-    return 0;
+    InitQTest();
+    QTEST_FILTER("c*.1");
+    return RUN_ALL_TESTS();
 }
 ```
 
-### dev 端代码
+一开始误以为是正则， 其实是通配符。
+参考了 https://www.geeksforgeeks.org/wildcard-pattern-matching/ 进行了实现
+
+## x. TODO
+- 统计单元测试函数运行耗时， 目前硬编码为 0ms， 需要修复
+- 测试套件 （Fixture） 的实现（平时用的不多， 可能实现有难度）
+- 过滤单元测试（传入 argc 和 argv， 需要支持用带通配符的字符串进行匹配）

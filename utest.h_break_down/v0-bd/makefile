@@ -13,3 +13,7 @@ testbed:
 .PHONY : clean
 clean:
 	cmake --build ${BUILD_DIR} --target clean%   
+
+.PHONY : compare
+compare:
+	./testbed > gtest.log 2>&1 ; ./qtest > qtest.log 2>&1
