@@ -334,7 +334,42 @@ int main()
 一开始误以为是正则， 其实是通配符。
 参考了 https://www.geeksforgeeks.org/wildcard-pattern-matching/ 进行了实现
 
-## x. TODO
+
+## 5. 消除全局变量
+参照了 utest.h 第一个 commit 中的写法:
+```c++
+#define UTEST_ASSERT(x, y, cond)                                               \
+  if (!((x)cond(y))) {                                                         \
+    printf("%s:%u: Failure\n", __FILE__, __LINE__);                            \
+    *utest_result = 1;                                                         \
+    return;                                                                    \
+  }
+```
+其中 `*utest_result = 1` 使用到了指针类型的变量， 是在 `TESTCASE` 宏定义的时候声明和定义的单元测试函数传参穿进去的：
+```c++
+#define TESTCASE(set, name)                                                    \
+  extern struct utest_state_s utest_state;                                     \
+  static void utest_run_##set##_##name(int *utest_result);                     \
+  UTEST_INITIALIZER(utest_register_##set##_##name) {                           \
+    const size_t index = utest_state.testcases_length++;                       \
+    utest_state.testcases = UTEST_PTR_CAST(                                    \
+        utest_testcase_t *,                                                    \
+        realloc(utest_state.testcases,                                         \
+                sizeof(utest_testcase_t) * utest_state.testcases_length));     \
+    utest_state.testcases[index] = &utest_run_##set##_##name;                  \
+    utest_state.testcase_names = UTEST_PTR_CAST(                               \
+        const char **,                                                         \
+        realloc(utest_state.testcase_names,                                    \
+                sizeof(char *) * utest_state.testcases_length));               \
+    utest_state.testcase_names[index] = #set "." #name;                        \
+  }                                                                            \
+  void utest_run_##set##_##name(int *utest_result)
+```
+因此把先前 v41_qtest.cpp 里的全局变量改为作为单元测试函数 `f()` 的参数传入即可。
+
+
+## 5. Limitations
 - 统计单元测试函数运行耗时， 目前硬编码为 0ms， 需要修复
 - 测试套件 （Fixture） 的实现（平时用的不多， 可能实现有难度）
-- 过滤单元测试（传入 argc 和 argv， 需要支持用带通配符的字符串进行匹配）
+- 不支持两个 vector 的比较
+    - 是由 `qtest_evaluate_if_required()` 的实现导致的

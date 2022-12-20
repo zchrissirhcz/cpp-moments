@@ -76,84 +76,12 @@ std::vector<std::string> qmatch(std::vector<std::string>& test_case_names, std::
     return res;
 }
 
-TEST(t, 1)
+TEST(c, 1)
 {
-    std::vector<std::string> test_case_names = {
-        "c",
-        "cd",
-        "ce",
-        "f"
-    };
-    std::string filter = "c*";
-    std::vector<std::string> actual = qmatch(test_case_names, filter);
-    std::vector<std::string> expected = {
-        "c",
-        "cd",
-        "ce"
-    };
-    EXPECT_EQ(expected, actual);
-}
-
-TEST(t, 2)
-{
-    std::vector<std::string> test_case_names = {
-        "c.1",
-        "c.2",
-        "cd.1",
-        "cd.2",
-        "ce.1",
-        "ce.2",
-        "f.1"
-    };
-    std::string filter = "c*.1";
-    std::vector<std::string> actual = qmatch(test_case_names, filter);
-    std::vector<std::string> expected = {
-        "c.1",
-        "cd.1",
-        "ce.1"
-    };
-    EXPECT_EQ(expected, actual);
-}
-
-TEST(t, 3)
-{
-    std::vector<std::string> test_case_names = {
-        "c.1",
-        "c.2",
-        "cd.1",
-        "cd.2",
-        "ce.1",
-        "ce.2",
-        "f.1"
-    };
-    std::string filter = "*";
-    std::vector<std::string> actual = qmatch(test_case_names, filter);
-    std::vector<std::string> expected = {
-        "c.1",
-        "c.2",
-        "cd.1",
-        "cd.2",
-        "ce.1",
-        "ce.2",
-        "f.1"
-    };
-    EXPECT_EQ(expected, actual);
-}
-
-TEST(t, 4)
-{
-    std::vector<std::string> test_case_names = {
-        "c.1",
-        "c.2",
-        "d.1",
-        "d.2"
-    };
-    std::string filter = "c*.1";
-    std::vector<std::string> actual = qmatch(test_case_names, filter);
-    std::vector<std::string> expected = {
-        "c.1",
-    };
-    EXPECT_EQ(expected, actual);
+    EXPECT_EQ(1, 1);
+    std::vector<int> va = {1, 2, 3};
+    std::vector<int> vb = {1, 2, 3};
+    EXPECT_EQ(va, vb);
 }
 
 int main(int argc, char* argv[])

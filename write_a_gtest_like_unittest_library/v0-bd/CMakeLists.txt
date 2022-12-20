@@ -15,7 +15,8 @@ add_executable(testbed
   #v21_gtest.cpp
   #v22_gtest.cpp
   #v31_gtest.cpp
-  v41_gtest.cpp
+  #v41_gtest.cpp
+  v51_gtest.cpp
 )
 target_include_directories(testbed PUBLIC ${CMAKE_SOURCE_DIR})
 
@@ -29,7 +30,8 @@ add_executable(qtest
   #v21_qtest.cpp
   #v22_qtest.cpp
   #v31_qtest.cpp
-  v41_qtest.cpp
+  #v41_qtest.cpp
+  v51_qtest.cpp
 )
 
 #--- GoogleTest
