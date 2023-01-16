@@ -1,0 +1,6 @@
+build/*
+.cache/
+
+qtest
+testbed
+filter_test

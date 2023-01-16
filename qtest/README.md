@@ -337,7 +337,8 @@ int main()
 ```
 
 一开始误以为是正则， 其实是通配符。
-参考了 https://www.geeksforgeeks.org/wildcard-pattern-matching/ 进行了实现
+参考了 https://www.geeksforgeeks.org/wildcard-pattern-matching/ 进行了实现； 后经知乎网友 木子穿叶 提醒， 参考的 DP 实现无法正确处理 `f?.1`。简单起见找到并使用 leetcode 上 "44. 通配符匹配" 这题的题解实现作为修复方案：
+https://leetcode.cn/problems/wildcard-matching/solutions/315802/tong-pei-fu-pi-pei-by-leetcode-solution/
 
 
 ## 5. 消除全局变量

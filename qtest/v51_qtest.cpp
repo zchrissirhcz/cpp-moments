@@ -138,8 +138,8 @@ public:
             int cnt = 0;
             for (int i = 0; i < test_items.size(); i++)
             {
-                std::string fname = test_items[i].fname;
-                if (strmatch(fname, filter))
+                const std::string fname = test_items[i].fname;
+                if (filter.length() == 0 || (filter.length() > 0 && strmatch(fname, filter)))
                 {
                     cnt++;
                 }
@@ -149,13 +149,13 @@ public:
 
             matched_test_set_count++;
 
-            std::string test_item_str = make_proper_str(cnt, "test");
+            const std::string test_item_str = make_proper_str(cnt, "test");
             printf("%s[----------]%s %s from %s\n", QTEST_ESCAPE_COLOR_GREEN, QTEST_ESCAPE_COLOR_END, test_item_str.c_str(), it->first.c_str());
             for (int i = 0; i < test_items.size(); i++)
             {
                 auto f = test_items[i].f;
                 std::string fname = test_items[i].fname;
-                if (!strmatch(fname, filter))
+                if (filter.length() > 0 && !strmatch(fname, filter))
                 {
                     continue;
                 }
@@ -224,67 +224,62 @@ public:
     }
 
 private:
-    // https://www.geeksforgeeks.org/wildcard-pattern-matching/
-    // Function that matches input str with given wildcard pattern
-    // Time complexity: O(m x n).
-    // Auxiliary space: O(m).
-    bool strmatch(std::string str, std::string pattern)
+    // https://leetcode.cn/problems/wildcard-matching/solutions/315802/tong-pei-fu-pi-pei-by-leetcode-solution/
+    /// @param s string
+    /// @param p pattern
+    bool strmatch(std::string s, std::string p)
     {
-        const int m = str.length();
-        const int n = pattern.length();
-        // lookup table for storing results of
-        // subproblems
-        std::vector<bool> prev(m + 1, false), curr(m + 1, false);
-
-        // empty pattern can match with empty string
-        prev[0] = true;
-
-        // fill the table in bottom-up fashion
-        for (int i = 1; i <= n; i++)
+        auto allStars = [](const std::string& str, int left, int right) {
+            for (int i = left; i < right; ++i) {
+                if (str[i] != '*') {
+                    return false;
+                }
+            }
+            return true;
+        };
+        auto charMatch = [](char u, char v)
         {
-            bool flag = true;
-            for (int ii = 1; ii < i; ii++)
-            {
-                if (pattern[ii - 1] != '*')
-                {
-                    flag = false;
-                    break;
-                }
-            }
-            curr[0] = flag; // for every row we are assigning
-                            // 0th column value.
-            for (int j = 1; j <= m; j++)
-            {
-                // Two cases if we see a '*'
-                // a) We ignore ‘*’ character and move
-                // to next character in the pattern,
-                //  i.e., ‘*’ indicates an empty sequence.
-                // b) '*' character matches with ith
-                //  character in input
-                if (pattern[i - 1] == '*')
-                {
-                    curr[j] = curr[j - 1] || prev[j];
-                }
+            return u == v || v == '?';
+        };
 
-                // Current characters are considered as
-                // matching in two cases
-                // (a) current character of pattern is '?'
-                // (b) characters actually match
-                else if (pattern[i - 1] == '?' || str[j - 1] == pattern[i - 1])
-                {
-                    curr[j] = prev[j - 1];
-                }
-
-                // If characters don't match
-                else
-                {
-                    curr[j] = false;
-                }
+        while (s.size() && p.size() && p.back() != '*')
+        {
+            if (charMatch(s.back(), p.back())) {
+                s.pop_back();
+                p.pop_back();
             }
-            prev = curr;
+            else {
+                return false;
+            }
+        }
+        if (p.empty()) {
+            return s.empty();
         }
 
-        return prev[m];
+        int sIndex = 0;
+        int pIndex = 0;
+        int sRecord = -1;
+        int pRecord = -1;
+        while (sIndex < s.size() && pIndex < p.size()) {
+            if (p[pIndex] == '*') {
+                ++pIndex;
+                sRecord = sIndex;
+                pRecord = pIndex;
+            }
+            else if (charMatch(s[sIndex], p[pIndex])) {
+                ++sIndex;
+                ++pIndex;
+            }
+            else if (sRecord != -1 && sRecord + 1 < s.size()) {
+                ++sRecord;
+                sIndex = sRecord;
+                pIndex = pRecord;
+            }
+            else {
+                return false;
+            }
+        }
+        return allStars(p, pIndex, p.size());
     }
 
 
@@ -377,5 +372,6 @@ int main()
 {
     InitQTest();
     QTEST_FILTER("c*.1");
+    //QTEST_FILTER("f?.1");
     return RUN_ALL_TESTS();
 }

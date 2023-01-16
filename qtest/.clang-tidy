@@ -1,0 +1,67 @@
+---
+Checks: 'bugprone-*,
+-bugprone-easily-swappable-parameters,
+cert-*,
+-cert-env33-c,
+clang-analyzer-*,
+cppcoreguidelines-*,
+-cppcoreguidelines-pro-bounds-array-to-pointer-decay,
+-cppcoreguidelines-pro-bounds-pointer-arithmetic,
+-cppcoreguidelines-pro-type-vararg,
+-cppcoreguidelines-pro-type-reinterpret-cast,
+-cppcoreguidelines-macro-usage,
+google-*,
+-google-objc-*,
+hicpp-*,
+-hicpp-vararg,
+llvm-*,
+misc-*,
+-misc-non-private-member-variables-in-classes,
+-misc-unused-parameters,
+-cppcoreguidelines-non-private-member-variables-in-classes,
+modernize-*,
+-modernize-loop-convert,
+-modernize-use-trailing-return-type,
+-modernize-avoid-c-arrays,
+-cppcoreguidelines-avoid-c-arrays,
+-hicpp-avoid-c-arrays,
+mpi-*,
+performance-*,
+-performance-unnecessary-value-param,
+readability-*,
+readability-identifier-naming,
+-readability-braces-around-statements,
+-hicpp-braces-around-statements,
+-google-readability-braces-around-statements,
+-readability-identifier-length,
+-readability-redundant-control-flow,
+-readability-magic-numbers,
+-cppcoreguidelines-avoid-magic-numbers,
+-readability-named-parameter
+'
+
+
+
+# CheckOptions:
+#   - {key: readability-identifier-naming.MacroDefinitionCase, value: UPPER_CASE}
+#   - {key: readability-identifier-naming.ClassCase, value: CamelCase}
+#   - {key: readability-identifier-naming.StructCase, value: CamelCase}
+#   - {key: readability-identifier-naming.TypedefCase, value: CamelCase}
+#   - {key: readability-identifier-naming.EnumCase, value: CamelCase}
+#   - {key: readability-identifier-naming.FunctionCase, value: CamelCase}
+#   - {key: readability-identifier-naming.MethodCase, value: CamelCase}
+#   - {key: readability-identifier-naming.TemplateParameterCase, value: CamelCase}
+#   - {key: readability-identifier-naming.VariableCase, value: lower_case}
+#   - {key: readability-identifier-naming.NamespaceCase, value: lower_case}
+#   - {key: readability-identifier-naming.MemberCase, value: lower_case}
+#   - { key: readability-identifier-naming.ParameterCase, value: lower_case}
+#   - { key: readability-identifier-naming.PrivateMemberPrefix,  value: m_}
+#   - { key: readability-identifier-naming.MethodIgnoredRegexp, value: '^get.*$|^set.*$|^is.*$|^has.*$'}
+#   - { key: readability-function-cognitive-complexity.Threshold, value: 50}
+
+
+
+# Author: Fenglielie
+# Link: https://fenglielie.github.io/cs/clang-tidy-note
+# Source: Fenglielie
+# Copyright is owned by the author. For commercial reprints, please contact the author for authorization. For non-commercial reprints, please indicate the source.
